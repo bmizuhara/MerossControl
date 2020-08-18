@@ -6,7 +6,8 @@ Controlling Meross smart-plug from Raspberry Pi
 これにはいくつかの懸念点があります。
 - 製造業者のサーバーがダウンしているときには使えない。
 - インターネットに接続できなければ使えない。
-- 人に知られたくない個人情報を製造業者に知られてしまうかもしれない。  
+- 人に知られたくない個人情報を製造業者に知られてしまうかもしれない。
+
 There are many so-called smart-plug devices, but many (if not all) of them are communicating with manufacturer's server to perform their functions.
 But that raises some concerns:
 - You cannot use them when manufacturer's server is down.
