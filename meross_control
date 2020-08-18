@@ -1,0 +1,52 @@
+#!/bin/sh
+
+MQTT_PUBLISH="/usr/bin/mosquitto_pub"
+
+MEROSS_DEVICEID="0123456789ABCDEF0123456789ABCDEF"
+NAMESPACE="Appliance.Control.ToggleX"
+KEY=""
+
+ACTION=""
+DEBUG=""
+
+if [ "$1" = "-d" ]; then
+    DEBUG=$1; shift;
+fi
+
+case "$1" in
+on|1|[Tt]rue)
+	ACTION='"onoff":1'
+	shift;;
+off|0|[Ff]alse)
+	ACTION='"onoff":0'
+	shift;;
+*)
+	echo "Usage: $0 [ -d ] on|off|1|0|true|false [ mosquitto_pub parameters ... ]"
+	exit 1
+esac
+
+if [ ! -x $MQTT_PUBLISH ]; then
+    echo "Cannot run $MQTT_PUBLISH! Exiting..."
+    exit 1
+fi
+
+TIMESTAMP=$(date +%s)
+MESSAGEID=$(uuid | md5sum | awk '{print $1}')
+SIGNATURE=$(echo -n $MESSAGEID$KEY$TIMESTAMP | md5sum | awk '{print $1}')
+
+TOPIC="/appliance/$MEROSS_DEVICEID/subscribe"
+HEADER="{\"messageId\":\"$MESSAGEID\",\"namespace\":\"$NAMESPACE\",\"method\":\"SET\",\"payloadVersion\":1,\"sign\":\"$SIGNATURE\",\"timestamp\":$TIMESTAMP}"
+PAYLOAD="{\"togglex\":{\"channel\":0,$ACTION}}"
+
+if [ "x$DEBUG" != "x" ]; then
+    echo About to publish MQTT message:
+    echo $MQTT_PUBLISH $DEBUG \
+	-t $TOPIC \
+	-m "{\"header\":$HEADER,\"payload\":$PAYLOAD}"
+fi
+
+$MQTT_PUBLISH $DEBUG $@ \
+    -t $TOPIC \
+    -m "{\"header\":$HEADER,\"payload\":$PAYLOAD}"
+
+exit $?
