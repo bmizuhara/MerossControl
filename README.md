@@ -7,16 +7,15 @@ Controlling Meross smart-plug from Raspberry Pi
 - 製造業者のサーバーがダウンしているときには使えない。
 - インターネットに接続できなければ使えない。
 - 人に知られたくない個人情報を製造業者に知られてしまうかもしれない。
+ですから、それらのデバイスを（製造業者のサーバーとではなく）自宅のローカルなサーバーと通信させることができれば、もっと安心できるはずです。
+しかし、そんなことは可能なのでしょうか？
+はい、Merossデバイスであれば、Raspberry Piと通信させることが可能です！  
 
 There are many so-called smart-plug devices, but many (if not all) of them are communicating with manufacturer's server to perform their functions.
 But that raises some concerns:
 - You cannot use them when manufacturer's server is down.
 - You cannot use them if you lose internet connectivity.
 - The manufacturer might capture your sensitive personal information.
-
-ですから、それらのデバイスを（製造業者のサーバーとではなく）自宅のローカルなサーバーと通信させることができれば、もっと安心できるはずです。
-しかし、そんなことは可能なのでしょうか？
-はい、Merossデバイスであれば、Raspberry Piと通信させることが可能です！  
 So, if you can use these devices by letting them communicate with your local server (not with manufacturer's server), that would make your life better.
 But is that possible?
 Yes, if you have a Meross device, you can make it communicate with your Raspberry Pi!
@@ -26,7 +25,7 @@ I will show you how to do that.
 
 ## Step 1.
 必要なパッケージをインストール  
-Install necessary packates:
+Install necessary packages:
 ```
 $ sudo apt-get update
 $ sudo apt-get install mosquitto mosquitto-clients
