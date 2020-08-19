@@ -2,6 +2,8 @@
 MerossスマートプラグをRaspberry Piからコントロールする  
 Controlling Meross smart-plug from Raspberry Pi
 
+Special thanks to albertogeniola, shodge12, and bytespider!
+
 スマートプラグと呼ばれるデバイスはたくさんありますが、そのほとんどは（全部ではないにしても）製造業者のサーバーと通信することによって、その機能を実現しています。
 これにはいくつかの懸念点があります。
 - 製造業者のサーバーがダウンしているときには使えない。
@@ -66,12 +68,12 @@ tls_version tlsv1.1
 ```
 
 あるいは、当リポジトリのmeross.confを/etc/mosquitto/conf.dにコピーしてもよい。  
-Or, copy meross.conf of this repository to /etc/mosquitto/conf.d:
+Or, you can copy meross.conf of this repository to /etc/mosquitto/conf.d:
 ```
 $ sudo cp meross.conf /etc/mosquitto/conf.d
 ```
 
-## Step 04.
+## Step 4.
 mosquittoデーモンを再起動し、ログを監視しておく。  
 Restart the mosquitto daemon and watch the log:
 ```
@@ -79,8 +81,8 @@ $ sudo systemctl restart mosquitto
 $ sudo tail -f /var/log/mosquitto/mosquitto.log
 ```
 
-または、mosquittoデーモンを停止し、デバッグモードでコマンドラインから実行する。  
-Or, stop the mosquitto daemon and invoke from command line in debug mode:
+または、より詳細なメッセージが見たい場合には、mosquittoデーモンを停止してデバッグモードでコマンドラインから実行する。  
+Or, if you want to see more detailed messages, stop the mosquitto daemon and invoke it from command line in debug mode:
 ```
 $ sudo systemctl stop mosquitto
 $ mosquitto -v -c /etc/mosquitto/conf.d/meross.conf
@@ -194,7 +196,7 @@ At the same time, the MQTT subscriber should emit messages like the following:
 ```
 ここで大事なのは、最後のほうにある`"onoff":1`あるいは`"onoff":0`だ。
 これがスイッチのオン・オフ状態を示している。  
-The most important part is `"onoff":1` or `"onoff":0` at the last of the message.
+The most important part is `"onoff":1` or `"onoff":0` at the end of the message.
 This shows the status of the switch, namely ON or OFF.
 
 ## Step 13.
@@ -224,3 +226,8 @@ $ ./meross_control 0
 
 Node-REDから「exec」ノードを使ってこのコマンドを実行すれば、Merossデバイスの動作を自動化することもできる。  
 If you use "exec" node of Node-RED to run this command, you can automate operation of the Meross device.
+
+## References
+- [Alberto Geniola, MerossIoT, Issue #1: Offline-ONLY support] (https://github.com/albertogeniola/MerossIot/issues/1)
+- [shodge12, Meross-Node-Red-Comm] (https://github.com/shodge12/Meross-Node-Red-Comm)
+- [Rob Griffiths, Meross, MQTT wiki] (https://github.com/bytespider/Meross/wiki/MQTT)
