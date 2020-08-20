@@ -163,10 +163,10 @@ If not, something (probably WiFi password) was wrong. Press and hold the button 
 ## Step 10.
 Raspberry PiをホームWiFiネットワークに再接続する。
 しばらくするとMerossデバイスがMQTTブローカー（mosquittoデーモン）に接続し、LEDが緑色に点灯するはず。
-同時にmosquittoのログに`New device`と表示されるはず。おめでとう、これでMQTT接続は成功だ！  
+同時にmosquittoのログに`New client connected from ...`と表示されるはず。おめでとう、これでMQTT接続は成功だ！  
 Reconnect your Raspberry Pi to your home WiFi network.
 After a while, your Meross device will be connecting to the MQTT broker (mosquitto daemon) and its LED will light solid green.
-At the same time, you can see `new device found` entry in the mosquitto log. Congratulations, you successfully made a MQTT connection!
+At the same time, you can see `New client connected from ...` entry in the mosquitto log. Congratulations, you successfully made a MQTT connection!
 
 ## Step 11.
 もうひとつターミナルウィンドウを開き、MQTTサブスクライバーを起動してみよう。  
