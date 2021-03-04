@@ -22,7 +22,7 @@ off|0|[Ff]alse)
 	shift;;
 *)
 	echo "Usage: $0 [ -d ] on|off|1|0|true|false [ mosquitto_pub parameters ... ]"
-	exit 1
+	exit 1;;
 esac
 
 if [ ! -x $MQTT_PUBLISH ]; then
@@ -40,7 +40,7 @@ PAYLOAD="{\"togglex\":{\"channel\":0,$ACTION}}"
 
 if [ "x$DEBUG" != "x" ]; then
     echo About to publish MQTT message:
-    echo $MQTT_PUBLISH $DEBUG \
+    echo $MQTT_PUBLISH $DEBUG $@ \
 	-t $TOPIC \
 	-m "{\"header\":$HEADER,\"payload\":$PAYLOAD}"
 fi
