@@ -96,10 +96,10 @@ $ git clone https://github.com/bytespider/Meross
 ```
 
 ## Step 6.
-Meross/bin/srcディレクトリへ移動し、`npm install`を実行して依存するパッケージをインストールする。  
-Change directory to bin/src and run `npm install` to resolve dependencies:
+Meross/binディレクトリへ移動し、`npm install`を実行して依存するパッケージをインストールする。  
+Change directory to bin and run `npm install` to resolve dependencies:
 ```
-$ cd Meross/bin/src
+$ cd Meross/bin
 $ npm install
 ```
 
