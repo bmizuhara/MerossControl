@@ -35,7 +35,7 @@ MESSAGEID=$(uuid | md5sum | awk '{print $1}')
 SIGNATURE=$(echo -n $MESSAGEID$KEY$TIMESTAMP | md5sum | awk '{print $1}')
 
 TOPIC="/appliance/$MEROSS_DEVICEID/subscribe"
-HEADER="{\"messageId\":\"$MESSAGEID\",\"namespace\":\"$NAMESPACE\",\"method\":\"SET\",\"payloadVersion\":1,\"sign\":\"$SIGNATURE\",\"timestamp\":$TIMESTAMP}"
+HEADER="{\"messageId\":\"$MESSAGEID\",\"namespace\":\"$NAMESPACE\",\"method\":\"SET\",\"payloadVersion\":1,\"sign\":\"$SIGNATURE\",\"timestamp\":$TIMESTAMP,\"uuid\":\"$MEROSS_DEVICEID\",\"from\":\"dummy\"}"
 PAYLOAD="{\"togglex\":{\"channel\":0,$ACTION}}"
 
 if [ "x$DEBUG" != "x" ]; then
