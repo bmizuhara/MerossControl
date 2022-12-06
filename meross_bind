@@ -1,0 +1,50 @@
+#!/bin/sh
+
+MQTT_PUBLISH="/usr/bin/mosquitto_pub"
+
+MEROSS_DEVICEID="0123456789ABCDEF0123456789ABCDEF"
+NAMESPACE="Appliance.Control.Bind"
+METHOD="SETACK"
+FROM="/cloud/hook/subscribe"
+KEY=""
+
+ACTION=""
+DEBUG=""
+
+if [ "$1" = "-d" ]; then
+    DEBUG=$1; shift;
+fi
+
+case "$#" in
+0)
+	;;
+*)
+	echo "Usage: $0 [ -d ]"
+	exit 1;;
+esac
+
+if [ ! -x $MQTT_PUBLISH ]; then
+    echo "Cannot run $MQTT_PUBLISH! Exiting..."
+    exit 1
+fi
+
+TIMESTAMP=$(date +%s)
+MESSAGEID=$(uuid | md5sum | awk '{print $1}')
+SIGNATURE=$(echo -n $MESSAGEID$KEY$TIMESTAMP | md5sum | awk '{print $1}')
+
+TOPIC="/appliance/$MEROSS_DEVICEID/subscribe"
+HEADER="{\"messageId\":\"$MESSAGEID\",\"namespace\":\"$NAMESPACE\",\"method\":\"$METHOD\",\"payloadVersion\":1,\"from\":\"$FROM\",\"uuid\":\"$MEROSS_DEVICEID\",\"sign\":\"$SIGNATURE\",\"timestamp\":$TIMESTAMP}"
+PAYLOAD="{}"
+
+if [ "x$DEBUG" != "x" ]; then
+    echo About to publish MQTT message:
+    echo $MQTT_PUBLISH $DEBUG $@ \
+	-t $TOPIC \
+	-m "{\"header\":$HEADER,\"payload\":$PAYLOAD}"
+fi
+
+$MQTT_PUBLISH $DEBUG $@ \
+    -t $TOPIC \
+    -m "{\"header\":$HEADER,\"payload\":$PAYLOAD}"
+
+exit $?

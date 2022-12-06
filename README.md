@@ -2,7 +2,7 @@
 MerossスマートプラグをRaspberry Piからコントロールする  
 Controlling Meross smart-plug from Raspberry Pi
 
-Special thanks to albertogeniola, shodge12, and bytespider!
+Special thanks to albertogeniola, shodge12, bytespider, and psmatter!
 
 スマートプラグと呼ばれるデバイスはたくさんありますが、そのほとんどは（全部ではないにしても）製造業者のサーバーと通信することによって、その機能を実現しています。
 これにはいくつかの懸念点があります。
@@ -47,7 +47,8 @@ Create a certificate for use in TLS communication (self-signed certificate is OK
 ```
 $ cd /etc/mosquitto/certs
 $ sudo make-ssl-cert /usr/share/ssl-cert/ssleay.cnf mqtt_server.pem
-$ sudo chown pi.pi mqtt_server.pem
+$ sudo chown pi.mosquitto mqtt_server.pem
+$ sudo chmod 640 mqtt_server.pem
 ```
 ホスト名には`localhost`、別名には`IP:192.168.X.Y`と入力する。ここで192.168.X.YはRaspberry PiのIPアドレス。  
 Enter `localhost` for hostname and `IP:192.168.X.Y` for altname, where 192.168.X.Y is the IP address of your Raspberry Pi.
@@ -56,8 +57,11 @@ Enter `localhost` for hostname and `IP:192.168.X.Y` for altname, where 192.168.X
 以下の内容を/etc/mosquitto/conf.d/meross.confに書き込む。  
 Create the file /etc/mosquitto/conf.d/meross.conf with the content:
 ```
+
 port 1883
 listener 8883
+
+allow_anonymous true
 
 capath /etc/ssl/certs
 
@@ -65,6 +69,7 @@ certfile /etc/mosquitto/certs/mqtt_server.pem
 keyfile /etc/mosquitto/certs/mqtt_server.pem
 
 tls_version tlsv1.1
+
 ```
 
 あるいは、当リポジトリのmeross.confを/etc/mosquitto/conf.dにコピーしてもよい。  
@@ -97,7 +102,7 @@ $ git clone https://github.com/bytespider/Meross
 
 ## Step 6.
 Meross/binディレクトリへ移動し、`npm install`を実行して依存するパッケージをインストールする。  
-Change directory to bin and run `npm install` to resolve dependencies:
+Change directory to Meross/bin and run `npm install` to resolve dependencies:
 ```
 $ cd Meross/bin
 $ npm install
@@ -120,38 +125,36 @@ When you click the WiFi icon in the top-right corner of the Raspberry Pi Desktop
 Connect to that AP.
 
 この状態で、IPアドレス10.10.10.1にMerossデバイスが見えている。
-以下のようにmerossツールを実行し、結果は後で使うのでファイルに保存しておく。  
+以下のようにmerossツールを実行する。  
 Now you can access your Meross device with the IP address 10.10.10.1.
-Run the meross tool as shown below, with the resulting string saved for later use:
+Run the meross tool as shown below:
 ```
-$ ./meross info --gateway 10.10.10.1 | tee ~/meross-info.log
+$ ./meross info --gateway 10.10.10.1
 ```
-以下のように表示された中で、「from:」で始まる行の`2004216982025625189748e1e91a59bc`という32桁の16進数が、このMerossデバイスのIDだ。  
-The 32-digit hexadecimal number `2004216982025625189748e1e91a59bc`, shown in the line beginning "from:", is the ID of your Meross device.
+以下のように表示された中で、「UUID」で始まる行の`2004216982025625189748e1e91a59bc`という32桁の16進数が、このMerossデバイスのIDだ。
+この数字をコピーして保存しておく。
+The 32-digit hexadecimal number `2004216982025625189748e1e91a59bc`, shown in the line beginning "UUID", is the ID of your Meross device.
+Copy and save this number.
 ```
 Getting info about device with IP 10.10.10.1
-sending payload { header:
-   { method: 'GET',
-     namespace: 'Appliance.System.All',
-     messageId: '1' },
-  payload: {} }
-{ header:
-   { messageId: '1',
-     namespace: 'Appliance.System.All',
-     method: 'GETACK',
-     payloadVersion: 1,
-     from: '/appliance/2004216982025625189748e1e91a59bc/publish',
-     timestamp: 517,
-     timestampMs: 652,
-     sign: '81c8727c62e800be708dbf37c4695dff' },
-  payload: { all: { system: [Object], digest: [Object] } } }
+┌─────────────┬─────────────────────────────────────────────────────────────────
+│Device       │mss110 us mt7682 (hardware:2.0.0 firmware:2.1.17)                
+├─────────────┼─────────────────────────────────────────────────────────────────
+│UUID         │2004216982025625189748e1e91a59bc                                 
+├─────────────┼─────────────────────────────────────────────────────────────────
+│Mac address  │48:e1:e9:1a:59:bc                                                
+├─────────────┼─────────────────────────────────────────────────────────────────
+│IP address   │10.10.10.1                                                       
+├─────────────┼─────────────────────────────────────────────────────────────────
+│Credentials  │...
+
 ```
 
 ## Step 9.
 再度merossツールを、今度はsetupモードで実行する。  
 Run the meross tool again with setup mode:
 ```
-$ ./meross setup --gateway 10.10.10.1 --wifi-ssid myssid --wifi-pass mypass --mqtt 192.168.X.Y:8883 | tee ~/meross-setup.log
+$ ./meross setup --gateway 10.10.10.1 --wifi-ssid myssid --wifi-pass mypass --mqtt 192.168.X.Y:8883
 ```
 ここでmyssidはホームWiFiネットワークのSSID、mypassはWiFiパスワード、192.168.X.YはRaspberry Piの（ホームWiFiネットワーク上の）IPアドレス。
 Merossデバイスはカチッと音を立てて再起動し、LEDが緑色で点滅するはず。
@@ -162,10 +165,16 @@ If not, something (probably WiFi password) was wrong. Press and hold the button 
 
 ## Step 10.
 Raspberry PiをホームWiFiネットワークに再接続する。
-しばらくするとMerossデバイスがMQTTブローカー（mosquittoデーモン）に接続し、LEDが緑色に点灯するはず。
+注意深くmosquittoのログを観察しよう。
+もし、「"namespace":"Appliance.Control.Bind"」を含むメッセージが受信された場合には、これに対処する必要がある。
+詳しくはAppendixを参照してほしい。
+そうでない場合には、しばらくするとMerossデバイスがMQTTブローカー（mosquittoデーモン）に接続し、LEDが緑色に点灯するはず。
 同時にmosquittoのログに`New client connected from ...`と表示されるはず。おめでとう、これでMQTT接続は成功だ！  
 Reconnect your Raspberry Pi to your home WiFi network.
-After a while, your Meross device will be connecting to the MQTT broker (mosquitto daemon) and its LED will light solid green.
+Carefully watch the mosquitto log.
+If you are receiving any message containing '"namespace":"Appliance.Control.Bind"', you should handle it appropriately.
+Please refer to Appendix.
+Otherwise, after a while, your Meross device will be connecting to the MQTT broker (mosquitto daemon) and its LED will light solid green.
 At the same time, you can see `New client connected from ...` entry in the mosquitto log. Congratulations, you successfully made a MQTT connection!
 
 ## Step 11.
@@ -180,7 +189,7 @@ where "#" is a multi-level wildcard character, so you are subscribing to all top
 あるいは、TLSで接続したければ、次のようにすることもできる。  
 Or, if you prefer TLS connection, you can:
 ```
-$ sudo mosquitto_sub -d -t "/#" --cafile /etc/mosquitto/certs/mqtt_server.pem
+$ mosquitto_sub -d -t "/#" --cafile /etc/mosquitto/certs/mqtt_server.pem
 ```
 
 ## Step 12.
@@ -227,7 +236,30 @@ $ ./meross_control 0
 Node-REDから「exec」ノードを使ってこのコマンドを実行すれば、Merossデバイスの動作を自動化することもできる。  
 If you use "exec" node of Node-RED to run this command, you can automate operation of the Meross device.
 
+## Appendix
+Bindメッセージへの対処
+How to handle Bind message
+
+もし、「"namespace":"Appliance.Control.Bind"」を含むメッセージが受信された場合には、これに対処する必要がある。
+まず、当リポジトリのファイル`meross_bind`をエディターで開き、最初のほうにあるMEROSS_DEVICEIDを、ステップ8で求めた実際のMerossデバイスのIDに設定する。
+そして、そのようなメッセージを受信したらすぐ、以下のコマンドを実行する。 
+If you are receiving any message containing '"namespace":"Appliance.Control.Bind"', you should handle it appropriately.
+First, open the file `meross_bind` in this repository with your favorite editor, and set MEROSS_DEVICEID to your Meross device ID, obtained in the Step 8.
+Then, as soon as you receive such a message, run the following command.
+```
+$ ./meross_bind
+```
+
+すべてうまく行っていれば、MerossデバイスのLEDが緑色に点灯するはず。ステップ10に戻る。
+If everything goes well, the LED on your Meross device will light solid green. Return to Step 10.
+
+もしこの処理を自動化したいのであれば、albertogeniola氏のMerosss Local Broker Addon for HomeAssistant (https://github.com/albertogeniola/ha-meross-local-broker) の利用を検討してみてほしい。
+これはローカル環境にMerossサーバーを実装する、非常によく構成されたソフトウェアだ。
+If you want to automate this operation, consider using albertogeniola's Merosss Local Broker Addon for HomeAssistant (https://github.com/albertogeniola/ha-meross-local-broker).
+This is very well-structured software which implements full-featured Meross server components in your local environment.
+
 ## References
 - [Alberto Geniola, MerossIoT, Issue #1: Offline-ONLY support] (https://github.com/albertogeniola/MerossIot/issues/1)
+- [Alberto Geniola, Meross Local LAN Addon (https://github.com/albertogeniola/ha-meross-local-broker)
 - [shodge12, Meross-Node-Red-Comm] (https://github.com/shodge12/Meross-Node-Red-Comm)
 - [Rob Griffiths, Meross, MQTT wiki] (https://github.com/bytespider/Meross/wiki/MQTT)
